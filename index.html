@@ -8,10 +8,11 @@
     @font-face {
       font-family: 'Win95';
       src: url('https://fonts.cdnfonts.com/s/16612/W95FA.woff') format('woff');
+      font-display: swap;
     }
     body {
       background-color: #ffe6f0;
-      font-family: 'Win95', 'MS Sans Serif', sans-serif;
+      font-family: 'Win95', 'MS Sans Serif', Arial, sans-serif;
       color: #000;
       margin: 0;
       padding: 0;
@@ -70,10 +71,9 @@
       align-items: center;
       gap: 8px;
     }
-    .player audio {
+    .player iframe {
       width: 260px;
-      outline: none;
-      background: #fff0f6;
+      height: 60px;
       border: 2px inset #cc99b8;
       box-shadow: inset -1px -1px 0 #fff, inset 1px 1px 0 #a0527c;
     }
@@ -114,7 +114,7 @@
 </head>
 <body>
   <header>
-    <img src="public/pixel-logo.png" class="logo" alt="Succinct Logo" />
+    <img src="/pixel-logo.png" class="logo" alt="Succinct Logo" />
     <h1><span>🌴</span> Succinct Summer Feed</h1>
   </header>
 
@@ -125,10 +125,7 @@
     </div>
 
     <div class="player" title="Now playing Succinct Summer playlist">
-      <audio controls autoplay loop>
-        <source src="https://www.youtube.com/watch?v=n4OflWszcZ0" type="audio/mpeg" />
-        Your browser does not support the audio element.
-      </audio>
+      <iframe width="260" height="60" src="https://www.youtube.com/embed/n4OflWszcZ0?autoplay=1&loop=1&playlist=n4OflWszcZ0" frameborder="0" allow="autoplay; encrypted-media"></iframe>
       <div>🎵 Succinct Summer</div>
     </div>
   </div>
@@ -140,12 +137,13 @@
   <script>
     async function fetchTweets() {
       const container = document.getElementById("tweets");
+      container.innerHTML = "Loading tweets...";
       try {
-        const res = await fetch('/api/tweets?query=Succinct Summer');
-        if (!res.ok) throw new Error('Network response was not ok');
+        const res = await fetch('/api/tweets?query=Succinct%20Summer');
+        if (!res.ok) throw new Error(`Network response was not ok: ${res.status}`);
         const data = await res.json();
 
-        if (!data || !data.data) {
+        if (!data || !data.data || data.data.length === 0) {
           container.innerHTML = "No tweets found.";
           return;
         }
@@ -170,7 +168,7 @@
             });
           }
 
-          const tweetLink = `https://twitter.com/${user.username}/status/${tweet.id}`;
+          const tweetLink = `https://x.com/${user.username}/status/${tweet.id}`;
           const date = new Date(tweet.created_at).toLocaleString();
 
           el.innerHTML = `
@@ -186,8 +184,8 @@
           container.appendChild(el);
         });
       } catch (e) {
-        container.innerHTML = "Error loading tweets.";
-        console.error(e);
+        container.innerHTML = "Error loading tweets. Please try again later.";
+        console.error("Error fetching tweets:", e);
       }
     }
 
