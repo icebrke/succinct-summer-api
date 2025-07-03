@@ -1,12 +1,10 @@
 const axios = require('axios');
 
 module.exports = async (req, res) => {
-  // Разрешаем CORS для всех источников
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-  // Обработка OPTIONS запроса для CORS
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
