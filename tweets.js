@@ -1,32 +1,30 @@
-import fetch from 'node-fetch';
-import HttpsProxyAgent from 'https-proxy-agent';
+const axios = require('axios');
 
-const proxyHost = 's-14189.sp6.ovh';
-const proxyPort = '11002';
-const proxyUser = 'vGL7v3mx_1';
-const proxyPass = 'Z9RrXRFPRrtG';
-
-const proxyUrl = `http://${proxyUser}:${proxyPass}@${proxyHost}:${proxyPort}`;
-const agent = new HttpsProxyAgent(proxyUrl);
-
-const BEARER_TOKEN = 'AAAAAAAAAAAAAAAAAAAAACeX2wEAAAAAWwjmRxGrN6Tx1R7lgudBbcqqNiQ%3D7wZhFaDCLRpsH9jF4QVWvg5LpA76C0fdFegzgy418rF4jzRHot';
-
-export default async function handler(req, res) {
+module.exports = async (req, res) => {
   const { query } = req.query;
-  const searchQuery = query || 'Succinct Summer';
-  const url = `https://api.twitter.com/2/tweets/search/recent?query=${encodeURIComponent(searchQuery)}&max_results=5&expansions=attachments.media_keys,author_id&media.fields=url,type,preview_image_url&user.fields=username,profile_image_url,created_at`;
+
+  if (!query) {
+    return res.status(400).json({ error: 'Query parameter is required' });
+  }
 
   try {
-    const response = await fetch(url, {
+    const response = await axios.get('https://api.twitter.com/2/tweets/search/recent', {
       headers: {
-        Authorization: `Bearer ${BEARER_TOKEN}`,
+        Authorization: `Bearer ${process.env.TWITTER_BEARER_TOKEN}`,
       },
-      agent,
+      params: {
+        query,
+        'tweet.fields': 'created_at,author_id,attachments',
+        'expansions': 'author_id,attachments.media_keys',
+        'user.fields': 'username,profile_image_url',
+        'media.fields': 'url,preview_image_url,media_key,type',
+        max_results: 10,
+      },
     });
-    const data = await response.json();
-    res.status(200).json(data);
+
+    res.status(200).json(response.data);
   } catch (error) {
-    console.error(error);
+    console.error('Error fetching tweets:', error.response ? error.response.data : error.message);
     res.status(500).json({ error: 'Failed to fetch tweets' });
   }
-}
+};
